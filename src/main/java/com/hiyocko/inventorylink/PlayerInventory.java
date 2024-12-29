@@ -12,8 +12,6 @@ import net.minecraft.text.Text;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.hiyocko.inventorylink.Inventory_link.*;
-
 public class PlayerInventory {
     public static final ExecutorService es = Executors.newVirtualThreadPerTaskExecutor();
 
@@ -99,6 +97,5 @@ public class PlayerInventory {
         PlayerData playerData = new PlayerData(uuid, name, inventory, ender_chest, level, progress, health, hunger, serverName, isConnected);
 
         mySQL.setPlayerData(playerData);
-        LOGGER.info(playerData.toString());
     }
 }

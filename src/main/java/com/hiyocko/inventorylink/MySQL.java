@@ -22,7 +22,7 @@ public class MySQL {
             }
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            connection = DriverManager.getConnection("jdbc:mysql://"+Config.ADDRESS+":"+Config.PORT+"/"+Config.DATABASE, Config.USERNAME, Config.PASSWORD);
+            connection = DriverManager.getConnection("jdbc:mysql://"+Config.ADDRESS+":"+Config.PORT+"/"+Config.DATABASE+"?characterEncoding=utf-8&characterSetResults=utf-8", Config.USERNAME, Config.PASSWORD);
 
             PreparedStatement playerDataTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS playerdata(uuid char(36) primary key, name text, inventory longtext, enderchest longtext, level int, progress float, health float, hunger longtext, last_server text, isconnected boolean);");
             playerDataTable.executeUpdate();
@@ -52,6 +52,11 @@ public class MySQL {
                 getPlayerData.close();
                 setConnected.close();
 
+                connection = null;
+                setPlayerData = null;
+                getPlayerData = null;
+                setConnected = null;
+
                 logger.info("MYSQLの接続の切断に成功しました。");
             } else {
                 logger.warn("MYSQLに接続がありませんでした。");
@@ -60,6 +65,11 @@ public class MySQL {
             logger.error("MYSQLの接続の切断に失敗しました。");
             logger.error("エラー内容 : ", e);
         }
+    }
+
+    public void reConnection() {
+        closeConnection();
+        openConnection();
     }
 
     public PlayerData getPlayerData(UUID uuid) {

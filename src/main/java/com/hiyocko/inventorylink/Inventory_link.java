@@ -1,11 +1,20 @@
 package com.hiyocko.inventorylink;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.dedicated.MinecraftDedicatedServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 public class Inventory_link implements ModInitializer {
     public static String MOD_ID = "inventory-management";
@@ -14,6 +23,8 @@ public class Inventory_link implements ModInitializer {
     public FabricLoader fabricLoader = FabricLoader.getInstance();
     public Config config;
     public MySQL mySQL = new MySQL();
+
+    private final ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
 
     @Override
     public void onInitialize() {
@@ -24,10 +35,14 @@ public class Inventory_link implements ModInitializer {
             config.loadConfig();
 
             mySQL.openConnection();
+            ses.scheduleAtFixedRate(() -> {
+                if (server.getPlayerManager().getPlayerList().equals(new ArrayList<>())) mySQL.reConnection();
+            }, 1, 240, TimeUnit.MINUTES);
         });
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             PlayerInventory.es.shutdown();
+            ses.shutdownNow();
             mySQL.closeConnection();
             config = null;
         });
