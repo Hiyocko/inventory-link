@@ -8,14 +8,18 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import org.slf4j.Logger;
 
+import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class PlayerInventory {
     public static final ExecutorService es = Executors.newVirtualThreadPerTaskExecutor();
+    private static final Logger logger = Inventory_link.LOGGER;
 
     public static void joinServer(ServerPlayNetworkHandler handler, MinecraftServer server, MySQL mySQL) {
+        checkTable(mySQL);
         ServerPlayerEntity player = handler.getPlayer();
         RegistryWrapper.WrapperLookup playerWrapperLookup = new RegistryBuilder().createWrapperLookup(player.getRegistryManager());
 
@@ -74,6 +78,7 @@ public class PlayerInventory {
     }
 
     public static void leaveServer(ServerPlayNetworkHandler handler, MinecraftServer server, MySQL mySQL) {
+        checkTable(mySQL);
         ServerPlayerEntity player = handler.getPlayer();
         RegistryWrapper.WrapperLookup playerWrapperLookup = new RegistryBuilder().createWrapperLookup(player.getRegistryManager());
 
@@ -97,5 +102,16 @@ public class PlayerInventory {
         PlayerData playerData = new PlayerData(uuid, name, inventory, ender_chest, level, progress, health, hunger, serverName, isConnected);
 
         mySQL.setPlayerData(playerData);
+    }
+
+    private static void checkTable(MySQL mySQL) {
+        try {
+            if (!mySQL.existsTable()) {
+                mySQL.reConnection();
+            }
+        } catch (SQLException e) {
+            logger.error("MYSQLの接続検証の過程でエラーが発生しました。");
+            logger.error("エラー内容 : ", e);
+        }
     }
 }

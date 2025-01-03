@@ -24,8 +24,6 @@ public class Inventory_link implements ModInitializer {
     public Config config;
     public MySQL mySQL = new MySQL();
 
-    private final ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
-
     @Override
     public void onInitialize() {
         config = new Config(fabricLoader.getConfigDir());
@@ -35,14 +33,10 @@ public class Inventory_link implements ModInitializer {
             config.loadConfig();
 
             mySQL.openConnection();
-            ses.scheduleAtFixedRate(() -> {
-                if (server.getPlayerManager().getPlayerList().equals(new ArrayList<>())) mySQL.reConnection();
-            }, 1, 240, TimeUnit.MINUTES);
         });
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             PlayerInventory.es.shutdown();
-            ses.shutdownNow();
             mySQL.closeConnection();
             config = null;
         });

@@ -10,6 +10,7 @@ public class MySQL {
     private PreparedStatement getPlayerData;
     private PreparedStatement setPlayerData;
     private PreparedStatement setConnected;
+    private PreparedStatement existsTable;
     private final Logger logger = Inventory_link.LOGGER;
 
     public MySQL() {
@@ -22,7 +23,7 @@ public class MySQL {
             }
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            connection = DriverManager.getConnection("jdbc:mysql://"+Config.ADDRESS+":"+Config.PORT+"/"+Config.DATABASE+"?characterEncoding=utf-8&characterSetResults=utf-8", Config.USERNAME, Config.PASSWORD);
+            connection = DriverManager.getConnection("jdbc:mysql://"+Config.ADDRESS+":"+Config.PORT+"/"+Config.DATABASE+"?characterEncoding=utf-8&characterSetResults=utf-8&autoReconnect=true", Config.USERNAME, Config.PASSWORD);
 
             PreparedStatement playerDataTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS playerdata(uuid char(36) primary key, name text, inventory longtext, enderchest longtext, level int, progress float, health float, hunger longtext, last_server text, isconnected boolean);");
             playerDataTable.executeUpdate();
@@ -30,6 +31,7 @@ public class MySQL {
             getPlayerData = connection.prepareStatement("SELECT * FROM playerdata WHERE uuid = ?;");
             setPlayerData = connection.prepareStatement("REPLACE INTO playerdata (uuid, name, inventory, enderchest, level, progress, health, hunger, last_server, isconnected) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
             setConnected = connection.prepareStatement("UPDATE playerdata set isconnected = ? where uuid =?;");
+            existsTable = connection.prepareStatement("SHOW TABLES LIKE 'playerdata';");
 
             logger.info("MYSQLの接続に成功しました。");
             return true;
@@ -72,6 +74,13 @@ public class MySQL {
         openConnection();
     }
 
+    public boolean existsTable() throws SQLException{
+        existsTable.clearParameters();
+
+        ResultSet rs = existsTable.executeQuery();
+        return rs.next();
+    }
+
     public PlayerData getPlayerData(UUID uuid) {
         try {
             getPlayerData.clearParameters();
@@ -97,6 +106,9 @@ public class MySQL {
 
             resultSet.close();
             logger.info(uuid + "のデータの読み込みに成功しました。");
+            if (playerData == null) {
+                logger.warn(uuid+"のデータがテーブルに保存されていません。\n今回の切断時に新規保存します。");
+            }
             return playerData;
         } catch (SQLException e) {
             logger.error("データの読み込みに失敗しました。");
