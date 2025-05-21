@@ -4,6 +4,9 @@
   "package": "com.hiyocko.inventorylink.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "MinecraftServerMixin",
+    "PlayerListMixin",
+    "ServerMixin"
   ],
   "client": [
   ],

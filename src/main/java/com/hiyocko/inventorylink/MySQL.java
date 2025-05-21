@@ -10,7 +10,7 @@ public class MySQL {
     private PreparedStatement getPlayerData;
     private PreparedStatement setPlayerData;
     private PreparedStatement setConnected;
-    private PreparedStatement existsTable;
+    private PreparedStatement setServerName;
     private final Logger logger = Inventory_link.LOGGER;
 
     public MySQL() {
@@ -31,7 +31,7 @@ public class MySQL {
             getPlayerData = connection.prepareStatement("SELECT * FROM playerdata WHERE uuid = ?;");
             setPlayerData = connection.prepareStatement("REPLACE INTO playerdata (uuid, name, inventory, enderchest, level, progress, health, hunger, last_server, isconnected) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
             setConnected = connection.prepareStatement("UPDATE playerdata set isconnected = ? where uuid =?;");
-            existsTable = connection.prepareStatement("SHOW TABLES LIKE 'playerdata';");
+            setServerName = connection.prepareStatement("UPDATE playerdata set last_server = ? where uuid =?;");
 
             logger.info("MYSQLの接続に成功しました。");
             return true;
@@ -67,18 +67,6 @@ public class MySQL {
             logger.error("MYSQLの接続の切断に失敗しました。");
             logger.error("エラー内容 : ", e);
         }
-    }
-
-    public void reConnection() {
-        closeConnection();
-        openConnection();
-    }
-
-    public boolean existsTable() throws SQLException{
-        existsTable.clearParameters();
-
-        ResultSet rs = existsTable.executeQuery();
-        return rs.next();
     }
 
     public PlayerData getPlayerData(UUID uuid) {
@@ -148,6 +136,20 @@ public class MySQL {
             setConnected.executeUpdate();
             logger.info(uuid + "のデータの書き込みに成功しました。");
         } catch (SQLException e) {
+            logger.error("データの書き込みに失敗しました。");
+            logger.error("エラー内容 : ", e);
+        }
+    }
+
+    public void setLast_server(UUID uuid, String serverName) {
+        try {
+            setServerName.clearParameters();
+            setServerName.setString(1, serverName);
+            setServerName.setString(2, uuid.toString());
+
+            setServerName.executeUpdate();
+            logger.info(uuid + "のデータの書き込みに成功しました。");
+        } catch (SQLException e){
             logger.error("データの書き込みに失敗しました。");
             logger.error("エラー内容 : ", e);
         }

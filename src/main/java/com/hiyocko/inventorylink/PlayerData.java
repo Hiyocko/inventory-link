@@ -5,11 +5,9 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.StringNbtReader;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-
 public class PlayerData {
     @NotNull
-    private final UUID uuid;
+    private final String uuid;
     @NotNull
     private final String name;
     private final NbtCompound inventory;
@@ -20,9 +18,21 @@ public class PlayerData {
     private final NbtCompound hunger;
     private final String serverName;
     private final boolean isConnected;
+    public PlayerData(@NotNull String uuid, @NotNull String name, String serverName) {
+        this.uuid = uuid;
+        this.name = name;
+        this.inventory = null;
+        this.enderChest = null;
+        this.level = Integer.parseInt("0");
+        this.progress = Integer.parseInt("0");
+        this.health = Integer.parseInt("20");
+        this.hunger = null;
+        this.serverName = serverName;
+        this.isConnected = true;
+    }
     public PlayerData(@NotNull String uuid, @NotNull String name, String inventory, String enderChest, int level, float progress, float health, String hunger, String serverName, boolean isConnected) {
 
-        this.uuid = UUID.fromString(uuid);
+        this.uuid = uuid;
         this.name = name;
         this.inventory = convertNbtElement(inventory);
         this.enderChest = convertNbtElement(enderChest);
@@ -34,12 +44,12 @@ public class PlayerData {
         this.isConnected = isConnected;
     }
 
-    public @NotNull UUID getUuid(){
+    public @NotNull String getUuid(){
         return this.uuid;
     }
 
     public String getUuidAsString() {
-        return this.uuid.toString();
+        return this.uuid;
     }
 
     public @NotNull String getName() {
@@ -81,7 +91,8 @@ public class PlayerData {
     private NbtCompound convertNbtElement(String nbt) {
         //StringNbtReader snr = new StringNbtReader(new StringReader(nbt));
         try {
-            return StringNbtReader.parse(nbt);
+            //return StringNbtReader.parse(nbt);
+            return StringNbtReader.readCompound(nbt);
         } catch (CommandSyntaxException e) {
             return new NbtCompound();
         }
