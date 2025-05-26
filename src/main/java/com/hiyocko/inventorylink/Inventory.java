@@ -128,8 +128,9 @@ public class Inventory {
     }
 
     private static ItemStack lo(NbtElement e, RegistryWrapper.WrapperLookup regi) {
-        if (e == null) return ItemStack.EMPTY;
-        return ItemStack.fromNbt(regi, e.asCompound().orElseThrow()).orElseThrow();
+        NbtCompound a = (NbtCompound) e;
+        if (a.equals(new NbtCompound())) return ItemStack.EMPTY;
+        return ItemStack.fromNbt(regi, a).orElseThrow();
     }
 
     private static NbtCompound mergeInventory(ServerPlayerEntity p, NbtCompound n, RegistryWrapper.WrapperLookup regi) {
@@ -148,7 +149,9 @@ public class Inventory {
     }
 
     private static NbtCompound eq(ServerPlayerEntity p, EquipmentSlot slot, RegistryWrapper.WrapperLookup regi) {
-        return p.getEquippedStack(slot).toNbt(regi).asCompound().orElseThrow();
+        ItemStack itemStack = p.getEquippedStack(slot);
+        if (itemStack == ItemStack.EMPTY) return new NbtCompound();
+        return itemStack.toNbt(regi).asCompound().orElseThrow();
     }
 
     private static void clearInventory(ServerPlayerEntity player, RegistryWrapper.WrapperLookup a) {
